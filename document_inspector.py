@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import threading
 
 import websockets
 
@@ -17,6 +18,7 @@ class DocumentInspector:
     def __init__(self, server_uri):
         self.__server_uri = server_uri
         self.__messages_counter = 0
+        self.__messages_counter_thread_lock = threading.Lock()
 
     def get_widgets(self, doc_id, timeout=60):
         try:
@@ -219,5 +221,6 @@ class DocumentInspector:
         event_loop.stop()
 
     def __generate_message_id(self):
-        self.__messages_counter += 1
-        return self.__messages_counter
+        with self.__messages_counter_thread_lock:
+            self.__messages_counter += 1
+            return self.__messages_counter
