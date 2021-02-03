@@ -7,7 +7,7 @@ import websockets
 import websocket_replies_manager
 
 
-class DocumentScanner:
+class DocumentInspector:
     # Methods used in the sent messages.
     __GET_DOCUMENT = 'GetDocument'
     __GET_FIELDS_SUMMARY = 'GetFieldsSummary'
@@ -18,11 +18,11 @@ class DocumentScanner:
         self.__server_uri = server_uri
         self.__messages_counter = 0
 
-    def scan_widgets(self, doc_id, timeout=60):
+    def get_widgets(self, doc_id, timeout=60):
         try:
-            return self.__run_until_complete(self.__scan_widgets(doc_id, timeout))
+            return self.__run_until_complete(self.__get_widgets(doc_id, timeout))
         except Exception:
-            logging.warning("error on scan_widgets:", exc_info=True)
+            logging.warning("error on get_widgets:", exc_info=True)
             return []
 
     @classmethod
@@ -34,14 +34,14 @@ class DocumentScanner:
             cls.__handle_event_loop_exec_timeout(event_loop)
             raise
 
-    async def __scan_widgets(self, doc_id, timeout):
+    async def __get_widgets(self, doc_id, timeout):
         async with self.__connect_websocket() as websocket:
             replies_manager = websocket_replies_manager.WebsocketRepliesManager()
 
-            await self.__start_scan_widgets_workload(websocket, doc_id, replies_manager)
+            await self.__start_get_widgets_workload(websocket, doc_id, replies_manager)
 
-            consumer = self.__consume_scan_widgets_messages
-            producer = self.__produce_scan_widgets_messages
+            consumer = self.__consume_get_widgets_messages
+            producer = self.__produce_get_widgets_messages
             return await asyncio.wait_for(
                 self.__handle_websocket_communication(
                     consumer(websocket, replies_manager),
@@ -57,7 +57,7 @@ class DocumentScanner:
         """
         return websockets.connect(uri=self.__server_uri)
 
-    async def __start_scan_widgets_workload(self, websocket, doc_id, replies_manager):
+    async def __start_get_widgets_workload(self, websocket, doc_id, replies_manager):
         message_id = await self.__send_get_document_message(websocket, doc_id)
         replies_manager.add_pending_id(message_id, self.__GET_DOCUMENT)
 
@@ -70,7 +70,7 @@ class DocumentScanner:
         return results[0]
 
     @classmethod
-    async def __consume_scan_widgets_messages(cls, websocket, replies_manager):
+    async def __consume_get_widgets_messages(cls, websocket, replies_manager):
         results = []
         async for message in websocket:
             reply = json.loads(message)
@@ -90,18 +90,18 @@ class DocumentScanner:
 
         return results
 
-    async def __produce_scan_widgets_messages(self, websocket, replies_manager):
+    async def __produce_get_widgets_messages(self, websocket, replies_manager):
         while not replies_manager.were_all_precessed():
             if not replies_manager.is_there_reply_notification():
                 await replies_manager.wait_for_replies()
                 replies_manager.clear_reply_notifications()
             for reply in replies_manager.get_all_unhandled():
-                await self.__send_follow_up_msg_scan_widgets(websocket, replies_manager, reply)
+                await self.__send_follow_up_msg_get_widgets(websocket, replies_manager, reply)
 
         # Closes the websocket when there is no further reply to process.
         await websocket.close()
 
-    async def __send_follow_up_msg_scan_widgets(self, websocket, replies_manager, reply):
+    async def __send_follow_up_msg_get_widgets(self, websocket, replies_manager, reply):
         message_id = reply.get('id')
         if replies_manager.is_method(message_id, self.__GET_DOCUMENT):
             await self.__handle_get_document_reply(websocket, replies_manager, reply)
