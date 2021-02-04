@@ -176,7 +176,7 @@ class DocumentInspector:
         if not result['type'] in self.__GUI_DOC_TYPES:
             return
 
-        container_ids = result['guiContainers']
+        container_ids = result['widgetContainerIds']
         follow_up_msg_ids = await asyncio.gather(*[
             self.__send_get_widget_container_message(websocket, container_id)
             for container_id in container_ids
