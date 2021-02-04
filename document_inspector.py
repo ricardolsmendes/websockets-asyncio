@@ -14,7 +14,6 @@ class DocumentInspector:
 
     # Methods used in the sent messages.
     __GET_DOCUMENT = 'GetDocument'
-    __GET_FIELDS_SUMMARY = 'GetFieldsSummary'
     __GET_WIDGET_CONTAINER = 'GetWidgetContainer'
     __GET_WIDGET_PROPERTIES = 'GetWidgetProperties'
 
@@ -111,9 +110,6 @@ class DocumentInspector:
         if replies_manager.is_method(message_id, self.__GET_DOCUMENT):
             await self.__handle_get_document_reply(websocket, replies_manager, reply)
             replies_manager.remove_unhandled(reply)
-        elif replies_manager.is_method(message_id, self.__GET_FIELDS_SUMMARY):
-            await self.__handle_get_fields_summary_reply(websocket, replies_manager, reply)
-            replies_manager.remove_unhandled(reply)
         elif replies_manager.is_method(message_id, self.__GET_WIDGET_CONTAINER):
             await self.__handle_get_widget_container_reply(websocket, replies_manager, reply)
             replies_manager.remove_unhandled(reply)
@@ -135,26 +131,6 @@ class DocumentInspector:
             }))
 
         logging.debug('Get Document message sent: %d', message_id)
-        return message_id
-
-    async def __send_get_fields_summary_message(self, websocket, doc_id):
-        """Sends a Get Fields Summary message.
-
-        Returns:
-            The message id.
-        """
-        message_id = self.__generate_message_id()
-        await websocket.send(
-            json.dumps({
-                'method': self.__GET_FIELDS_SUMMARY,
-                'params': {
-                    'documentId': doc_id,
-                    'fieldType': 'widget'
-                },
-                'id': message_id,
-            }))
-
-        logging.debug('Get Fields Summary message sent: %d', message_id)
         return message_id
 
     async def __send_get_widget_container_message(self, websocket, container_id):
@@ -197,14 +173,10 @@ class DocumentInspector:
 
     async def __handle_get_document_reply(self, websocket, replies_manager, reply):
         result = reply['result']
-        if result['type'] in self.__GUI_DOC_TYPES:
-            doc_id = result['id']
-            follow_up_msg_id = await self.__send_get_fields_summary_message(websocket, doc_id)
-            replies_manager.add_pending_id(follow_up_msg_id, self.__GET_FIELDS_SUMMARY)
+        if not result['type'] in self.__GUI_DOC_TYPES:
+            return
 
-    async def __handle_get_fields_summary_reply(self, websocket, replies_manager, reply):
-        containers_summary = reply['result']
-        container_ids = [container['id'] for container in containers_summary]
+        container_ids = result['guiContainers']
         follow_up_msg_ids = await asyncio.gather(*[
             self.__send_get_widget_container_message(websocket, container_id)
             for container_id in container_ids
