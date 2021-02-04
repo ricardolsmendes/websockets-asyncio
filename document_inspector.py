@@ -9,6 +9,9 @@ import websocket_replies_manager
 
 
 class DocumentInspector:
+    # Types of the documents to be inspected.
+    __GUI_DOC_TYPES = ['biDashboard', 'slide']
+
     # Methods used in the sent messages.
     __GET_DOCUMENT = 'GetDocument'
     __GET_FIELDS_SUMMARY = 'GetFieldsSummary'
@@ -194,7 +197,7 @@ class DocumentInspector:
 
     async def __handle_get_document_reply(self, websocket, replies_manager, reply):
         result = reply['result']
-        if result['hasWidgets']:
+        if result['type'] in self.__GUI_DOC_TYPES:
             doc_id = result['id']
             follow_up_msg_id = await self.__send_get_fields_summary_message(websocket, doc_id)
             replies_manager.add_pending_id(follow_up_msg_id, self.__GET_FIELDS_SUMMARY)
