@@ -78,8 +78,8 @@ class DocumentInspector:
         """
         results = await asyncio.gather(*[msg_sender, msg_receiver])
         # The ``results`` array is expected to have two elements. The first one stores the result
-        # of the message sender, which can be ignored. The second one stores the result of the
-        # receiver, which means the object to be returned on a successful execution.
+        # of the message sender and can be ignored. The second one stores the result of the
+        # receiver, which means the object to be returned on successful execution.
         return results[1]
 
     @classmethod
@@ -186,16 +186,17 @@ class DocumentInspector:
             return
 
         container_ids = result['widgetContainerIds']
-        follow_up_msg_ids = await asyncio.gather(*[
+        get_widget_container_msg_ids = await asyncio.gather(*[
             self.__send_get_widget_container_message(websocket, container_id)
             for container_id in container_ids
         ])
-        replies_manager.add_pending_ids(follow_up_msg_ids, self.__GET_WIDGET_CONTAINER)
+        replies_manager.add_pending_ids(get_widget_container_msg_ids, self.__GET_WIDGET_CONTAINER)
 
     async def __handle_get_widget_container_reply(self, websocket, replies_manager, reply):
         widget_id = reply['result']['id']
-        follow_up_msg_id = await self.__send_get_widget_properties_message(websocket, widget_id)
-        replies_manager.add_pending_id(follow_up_msg_id, self.__GET_WIDGET_PROPERTIES)
+        get_widget_properties_msg_id = \
+            await self.__send_get_widget_properties_message(websocket, widget_id)
+        replies_manager.add_pending_id(get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
 
     @classmethod
     def __handle_event_loop_exec_timeout(cls, event_loop):
