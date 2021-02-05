@@ -3,21 +3,21 @@ import asyncio
 
 class SendReceiveSyncHelper:
     """Utility class with common features for handling message/replies synchronization over
-    websocket communication sessions.
+    WebSocket communication sessions.
 
     Attributes:
         __pending_reply_ids:
             A ``list`` containing the ids of the pending replies, which means the messages
             identified by them were sent but not replied yet.
         __messages_history:
-            A ``dict`` containing a full history of the messages known by a given
-            ``WebsocketRepliesManager`` instance, represented as ``message-id: method`` items.
-            It is automatically fulfilled when pending ids are added to ``__pending_ids``.
+            A ``dict`` containing the full history of messages known by a given
+            ``SendReceiveSyncHelper`` instance, represented as ``message-id: method`` items.
+            It is automatically fulfilled when new stuff is added to ``__pending_reply_ids``.
         __unhandled_replies:
-            A ``list`` containing all reply objects that were received but not handled yet.
+            A ``list`` containing all replies that were received but not handled yet.
         __new_reply_event:
-            A signal used by the consumer to notify the producer on the arrival of new replies, so
-            the producer can take actions such as sending follow-up messages.
+            A signal used by the receiver to notify the sender on the arrival of new replies, so
+            the sender can take actions such as sending follow-up messages.
     """
 
     def __init__(self):
