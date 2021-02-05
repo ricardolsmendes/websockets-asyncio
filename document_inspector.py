@@ -44,11 +44,11 @@ class DocumentInspector:
 
             await self.__start_get_widgets_workload(websocket, doc_id, replies_manager)
 
-            sender = self.__send_get_widgets_messages
-            receiver = self.__receive_get_widgets_messages
+            msg_sender = self.__send_get_widgets_messages
+            msg_receiver = self.__receive_get_widgets_messages
             return await asyncio.wait_for(
-                self.__hold_websocket_communication(sender(websocket, replies_manager),
-                                                    receiver(websocket, replies_manager)),
+                self.__hold_websocket_communication(msg_sender(websocket, replies_manager),
+                                                    msg_receiver(websocket, replies_manager)),
                 timeout)
 
     def __connect_websocket(self):
@@ -65,21 +65,21 @@ class DocumentInspector:
         replies_manager.add_pending_id(message_id, self.__GET_DOCUMENT)
 
     @classmethod
-    async def __hold_websocket_communication(cls, sender_coro, receiver_coro):
-        """Holds a websocket connection session until the given sender and receiver concurrent
-        tasks are done.
+    async def __hold_websocket_communication(cls, msg_sender, msg_receiver):
+        """Holds a websocket communication session until the awaitable message sender and receiver
+        are done.
 
         Args:
-            sender_coro: The sender coroutine.
-            receiver_coro: The receiver coroutine.
+            msg_sender: A coroutine or future that sends messages.
+            msg_receiver: A coroutine or future that receives messages.
 
         Returns:
-            The result of the receiver coroutine.
+            The result of the receiver.
         """
-        results = await asyncio.gather(*[sender_coro, receiver_coro])
-        # The 'results' array is expected to have two elements. The first one stores the result of
-        # the sender coroutine, which can be ignored. The second one stores the result of the
-        # receiver coroutine, which means the object to be returned on a successful execution.
+        results = await asyncio.gather(*[msg_sender, msg_receiver])
+        # The ``results`` array is expected to have two elements. The first one stores the result
+        # of the message sender, which can be ignored. The second one stores the result of the
+        # receiver, which means the object to be returned on a successful execution.
         return results[1]
 
     @classmethod
