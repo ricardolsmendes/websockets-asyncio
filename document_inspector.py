@@ -44,12 +44,11 @@ class DocumentInspector:
 
             await self.__start_get_widgets_workload(websocket, doc_id, replies_manager)
 
-            consumer = self.__consume_get_widgets_messages
-            producer = self.__produce_get_widgets_messages
+            sender = self.__send_get_widgets_messages
+            receiver = self.__receive_get_widgets_messages
             return await asyncio.wait_for(
-                self.__handle_websocket_communication(
-                    consumer(websocket, replies_manager),
-                    producer(websocket, replies_manager)),
+                self.__handle_websocket_communication(sender(websocket, replies_manager),
+                                                      receiver(websocket, replies_manager)),
                 timeout)
 
     def __connect_websocket(self):
@@ -66,21 +65,21 @@ class DocumentInspector:
         replies_manager.add_pending_id(message_id, self.__GET_DOCUMENT)
 
     @classmethod
-    async def __handle_websocket_communication(cls, consumer_future, producer_future):
+    async def __handle_websocket_communication(cls, sender_future, receiver_future):
         # The 'results' array is expected to have two elements. The first one stores the result of
-        # the consumer, which means the object to be returned on a successful execution. The second
-        # one stores the result of the producer and can be ignored.
-        results = await asyncio.gather(*[consumer_future, producer_future])
-        return results[0]
+        # the sender, which can be ignored. The second one stores the result of the receiver, which
+        # means the object to be returned on a successful execution.
+        results = await asyncio.gather(*[sender_future, receiver_future])
+        return results[1]
 
     @classmethod
-    async def __consume_get_widgets_messages(cls, websocket, replies_manager):
+    async def __receive_get_widgets_messages(cls, websocket, replies_manager):
         results = []
         async for message in websocket:
             reply = json.loads(message)
             message_id = reply.get('id')
             if not message_id:
-                logging.warning('Unknown API message: %s', message)
+                logging.info('Unhandled API message: %s', message)
                 continue
 
             logging.debug('Reply received: %d', message_id)
@@ -94,7 +93,7 @@ class DocumentInspector:
 
         return results
 
-    async def __produce_get_widgets_messages(self, websocket, replies_manager):
+    async def __send_get_widgets_messages(self, websocket, replies_manager):
         while not replies_manager.were_all_precessed():
             if not replies_manager.is_there_reply_notification():
                 await replies_manager.wait_for_replies()
