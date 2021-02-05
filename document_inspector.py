@@ -65,11 +65,11 @@ class DocumentInspector:
         replies_manager.add_pending_id(message_id, self.__GET_DOCUMENT)
 
     @classmethod
-    async def __handle_websocket_communication(cls, sender_future, receiver_future):
+    async def __handle_websocket_communication(cls, sender_coro, receiver_coro):
         # The 'results' array is expected to have two elements. The first one stores the result of
-        # the sender, which can be ignored. The second one stores the result of the receiver, which
-        # means the object to be returned on a successful execution.
-        results = await asyncio.gather(*[sender_future, receiver_future])
+        # the sender coroutine, which can be ignored. The second one stores the result of the
+        # receiver coroutine, which means the object to be returned on a successful execution.
+        results = await asyncio.gather(*[sender_coro, receiver_coro])
         return results[1]
 
     @classmethod
