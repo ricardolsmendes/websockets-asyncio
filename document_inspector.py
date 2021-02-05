@@ -5,7 +5,7 @@ import threading
 
 import websockets
 
-import websocket_replies_manager
+import send_receive_sync_helper
 
 
 class DocumentInspector:
@@ -40,15 +40,15 @@ class DocumentInspector:
 
     async def __get_widgets(self, doc_id, timeout):
         async with self.__connect_websocket() as websocket:
-            replies_manager = websocket_replies_manager.WebsocketRepliesManager()
+            sync_helper = send_receive_sync_helper.SendReceiveSyncHelper()
 
-            await self.__start_get_widgets_workload(websocket, doc_id, replies_manager)
+            await self.__start_get_widgets_workload(websocket, doc_id, sync_helper)
 
             msg_sender = self.__send_get_widgets_messages
             msg_receiver = self.__receive_get_widgets_messages
             return await asyncio.wait_for(
-                self.__hold_websocket_communication(msg_sender(websocket, replies_manager),
-                                                    msg_receiver(websocket, replies_manager)),
+                self.__hold_websocket_communication(msg_sender(websocket, sync_helper),
+                                                    msg_receiver(websocket, sync_helper)),
                 timeout)
 
     def __connect_websocket(self):
@@ -60,9 +60,9 @@ class DocumentInspector:
         """
         return websockets.connect(uri=self.__server_uri)
 
-    async def __start_get_widgets_workload(self, websocket, doc_id, replies_manager):
+    async def __start_get_widgets_workload(self, websocket, doc_id, sync_helper):
         message_id = await self.__send_get_document_message(websocket, doc_id)
-        replies_manager.add_pending_id(message_id, self.__GET_DOCUMENT)
+        sync_helper.add_pending_reply_id(message_id, self.__GET_DOCUMENT)
 
     @classmethod
     async def __hold_websocket_communication(cls, msg_sender, msg_receiver):
@@ -83,7 +83,7 @@ class DocumentInspector:
         return results[1]
 
     @classmethod
-    async def __receive_get_widgets_messages(cls, websocket, replies_manager):
+    async def __receive_get_widgets_messages(cls, websocket, sync_helper):
         results = []
         async for message in websocket:
             reply = json.loads(message)
@@ -93,35 +93,35 @@ class DocumentInspector:
                 continue
 
             logging.debug('Reply received: %d', message_id)
-            if replies_manager.is_pending(message_id, cls.__GET_WIDGET_PROPERTIES):
+            if sync_helper.is_pending_reply(message_id, cls.__GET_WIDGET_PROPERTIES):
                 results.append(reply['result'])
             else:
-                replies_manager.add_unhandled(reply)
+                sync_helper.add_unhandled_reply(reply)
 
-            replies_manager.remove_pending_id(message_id)
-            replies_manager.notify_new_reply()
+            sync_helper.remove_pending_reply_id(message_id)
+            sync_helper.notify_new_reply()
 
         return results
 
-    async def __send_get_widgets_messages(self, websocket, replies_manager):
-        while not replies_manager.were_all_precessed():
-            if not replies_manager.is_there_reply_notification():
-                await replies_manager.wait_for_replies()
-                replies_manager.clear_reply_notifications()
-            for reply in replies_manager.get_all_unhandled():
-                await self.__send_follow_up_msg_get_widgets(websocket, replies_manager, reply)
+    async def __send_get_widgets_messages(self, websocket, sync_helper):
+        while not sync_helper.were_all_replies_precessed():
+            if not sync_helper.is_there_reply_notification():
+                await sync_helper.wait_for_replies()
+                sync_helper.clear_reply_notifications()
+            for reply in sync_helper.get_all_unhandled_replies():
+                await self.__send_follow_up_msg_get_widgets(websocket, sync_helper, reply)
 
         # Closes the websocket when there is no further reply to process.
         await websocket.close()
 
-    async def __send_follow_up_msg_get_widgets(self, websocket, replies_manager, reply):
+    async def __send_follow_up_msg_get_widgets(self, websocket, sync_helper, reply):
         message_id = reply.get('id')
-        if replies_manager.is_method(message_id, self.__GET_DOCUMENT):
-            await self.__handle_get_document_reply(websocket, replies_manager, reply)
-            replies_manager.remove_unhandled(reply)
-        elif replies_manager.is_method(message_id, self.__GET_WIDGET_CONTAINER):
-            await self.__handle_get_widget_container_reply(websocket, replies_manager, reply)
-            replies_manager.remove_unhandled(reply)
+        if sync_helper.is_method(message_id, self.__GET_DOCUMENT):
+            await self.__handle_get_document_reply(websocket, sync_helper, reply)
+            sync_helper.remove_unhandled_reply(reply)
+        elif sync_helper.is_method(message_id, self.__GET_WIDGET_CONTAINER):
+            await self.__handle_get_widget_container_reply(websocket, sync_helper, reply)
+            sync_helper.remove_unhandled_reply(reply)
 
     async def __send_get_document_message(self, websocket, doc_id):
         """Sends a Get Document message.
@@ -180,7 +180,7 @@ class DocumentInspector:
         logging.debug('Get Widget Properties message sent: %d', message_id)
         return message_id
 
-    async def __handle_get_document_reply(self, websocket, replies_manager, reply):
+    async def __handle_get_document_reply(self, websocket, sync_helper, reply):
         result = reply['result']
         if not result['type'] in self.__GUI_DOC_TYPES:
             return
@@ -190,13 +190,15 @@ class DocumentInspector:
             self.__send_get_widget_container_message(websocket, container_id)
             for container_id in container_ids
         ])
-        replies_manager.add_pending_ids(get_widget_container_msg_ids, self.__GET_WIDGET_CONTAINER)
+        sync_helper.add_pending_reply_ids(
+            get_widget_container_msg_ids, self.__GET_WIDGET_CONTAINER)
 
-    async def __handle_get_widget_container_reply(self, websocket, replies_manager, reply):
+    async def __handle_get_widget_container_reply(self, websocket, sync_helper, reply):
         widget_id = reply['result']['id']
         get_widget_properties_msg_id = \
             await self.__send_get_widget_properties_message(websocket, widget_id)
-        replies_manager.add_pending_id(get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
+        sync_helper.add_pending_reply_id(
+            get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
 
     @classmethod
     def __handle_event_loop_exec_timeout(cls, event_loop):
