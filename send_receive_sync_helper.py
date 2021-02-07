@@ -52,8 +52,7 @@ class SendReceiveSyncHelper:
         self.__pending_reply_ids.remove(message_id)
 
     def is_pending_reply(self, message_id, method):
-        return message_id in self.__pending_reply_ids and self.is_method(
-            message_id, method)
+        return message_id in self.__pending_reply_ids and self.is_method(message_id, method)
 
     def is_method(self, message_id, method):
         return method == self.__messages_history.get(message_id)

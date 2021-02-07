@@ -77,8 +77,7 @@ class DocumentInspector:
             msg_receiver = self.__receive_get_widgets_messages
             return await asyncio.wait_for(
                 self.__hold_websocket_communication(msg_sender(websocket, sync_helper),
-                                                    msg_receiver(websocket, sync_helper)),
-                timeout)
+                                                    msg_receiver(websocket, sync_helper)), timeout)
 
     def __connect_websocket(self):
         """Opens a websocket connection.
@@ -219,15 +218,15 @@ class DocumentInspector:
             self.__send_get_widget_container_message(websocket, container_id)
             for container_id in container_ids
         ])
-        sync_helper.add_pending_reply_ids(
-            get_widget_container_msg_ids, self.__GET_WIDGET_CONTAINER)
+        sync_helper.add_pending_reply_ids(get_widget_container_msg_ids,
+                                          self.__GET_WIDGET_CONTAINER)
 
     async def __handle_get_widget_container_reply(self, websocket, sync_helper, reply):
         widget_id = reply['result']['id']
         get_widget_properties_msg_id = \
             await self.__send_get_widget_properties_message(websocket, widget_id)
-        sync_helper.add_pending_reply_id(
-            get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
+        sync_helper.add_pending_reply_id(get_widget_properties_msg_id,
+                                         self.__GET_WIDGET_PROPERTIES)
 
     @classmethod
     def __cancel_all_tasks(cls, event_loop):
