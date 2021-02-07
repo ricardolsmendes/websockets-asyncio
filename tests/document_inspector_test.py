@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import unittest
 from unittest import mock
 
@@ -20,6 +21,7 @@ import document_inspector
 
 class DocumentInspectorTest(unittest.TestCase):
     __INSPECTOR_CLASS = 'document_inspector.DocumentInspector'
+    __SYNC_HELPER_CLASS = 'document_inspector.send_receive_sync_helper.SendReceiveSyncHelper'
 
     def setUp(self):
         self.__document_inspector = document_inspector.DocumentInspector('wss://ws.example.com')
@@ -71,3 +73,41 @@ class DocumentInspectorTest(unittest.TestCase):
         self.assertRaises(Exception,
                           self.__document_inspector._DocumentInspector__run_until_complete,
                           mock_coroutine())
+
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__hold_websocket_communication',)
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__start_get_widgets_workload')
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__send_get_widgets_messages',
+                lambda *args: None)
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__receive_get_widgets_messages',
+                lambda *args: None)
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__connect_websocket',
+                lambda *args: mock.MagicMock())
+    @mock.patch(__SYNC_HELPER_CLASS, lambda *args: mock.MagicMock())
+    def test_get_widgets_should_start_get_widgets_workload(self, mock_start_get_widgets_workload,
+                                                           mock_hold_websocket_communication):
+
+        mock_hold_websocket_communication.return_value = mock.AsyncMock()
+
+        asyncio.run(self.__document_inspector._DocumentInspector__get_widgets('abc', 1))
+
+        mock_start_get_widgets_workload.assert_called_once()
+
+    @mock.patch('document_inspector.asyncio.wait_for')
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__hold_websocket_communication',
+                lambda *args: None)
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__start_get_widgets_workload')
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__send_get_widgets_messages',
+                lambda *args: None)
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__receive_get_widgets_messages',
+                lambda *args: None)
+    @mock.patch(f'{__INSPECTOR_CLASS}._DocumentInspector__connect_websocket',
+                lambda *args: mock.MagicMock())
+    @mock.patch(__SYNC_HELPER_CLASS, lambda *args: mock.MagicMock())
+    def test_get_widgets_should_set_websocket_communication_timeout(
+            self, mock_start_get_widgets_workload, mock_wait_for):
+
+        mock_start_get_widgets_workload.return_value = mock.AsyncMock()
+
+        asyncio.run(self.__document_inspector._DocumentInspector__get_widgets('abc', 1))
+
+        mock_wait_for.assert_called_once()
