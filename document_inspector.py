@@ -61,8 +61,11 @@ class DocumentInspector:
         try:
             return event_loop.run_until_complete(future)
         except Exception:
-            cls.__handle_workload_exception(event_loop)
+            logging.info('Something wrong happened while the workload was running.')
+            cls.__cancel_all_tasks(event_loop)
             raise
+        finally:
+            event_loop.close()
 
     async def __get_widgets(self, doc_id, timeout):
         async with self.__connect_websocket() as websocket:
@@ -227,11 +230,10 @@ class DocumentInspector:
             get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
 
     @classmethod
-    def __handle_workload_exception(cls, event_loop):
-        logging.info('Exception raised while the workload was running.')
+    def __cancel_all_tasks(cls, event_loop):
+        logging.info('All tasks will be canceled...')
         for task in asyncio.Task.all_tasks(loop=event_loop):
             task.cancel()
-        event_loop.stop()
 
     def __generate_message_id(self):
         with self.__messages_counter_thread_lock:
