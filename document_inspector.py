@@ -37,6 +37,18 @@ class DocumentInspector:
         self.__messages_counter_thread_lock = threading.Lock()
 
     def get_widgets(self, doc_id, timeout=60):
+        """Gets information from all graphical components that belong to a given document.
+
+        This method provides users a synchronized entry point, hiding the asynchronous processing
+        complexity from them.
+
+        Args:
+            doc_id: The document identifier.
+            timeout: Max seconds to wait.
+
+        Returns:
+            A ``list`` with the document's graphical components information.
+        """
         try:
             return self.__run_until_complete(self.__get_widgets(doc_id, timeout))
         except Exception:
@@ -216,7 +228,7 @@ class DocumentInspector:
 
     @classmethod
     def __handle_workload_exception(cls, event_loop):
-        logging.warning('Exception raised while the workload was running.')
+        logging.info('Exception raised while the workload was running.')
         for task in asyncio.Task.all_tasks(loop=event_loop):
             task.cancel()
         event_loop.stop()
