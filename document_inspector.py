@@ -48,8 +48,8 @@ class DocumentInspector:
         event_loop = asyncio.new_event_loop()
         try:
             return event_loop.run_until_complete(future)
-        except asyncio.TimeoutError:
-            cls.__handle_event_loop_exec_timeout(event_loop)
+        except Exception:
+            cls.__handle_event_loop_exception(event_loop)
             raise
 
     async def __get_widgets(self, doc_id, timeout):
@@ -91,9 +91,9 @@ class DocumentInspector:
             The result of the receiver.
         """
         results = await asyncio.gather(*[msg_sender, msg_receiver])
-        # The ``results`` array is expected to have two elements. The first one stores the result
-        # of the message sender and can be ignored. The second one stores the result of the
-        # receiver, which means the object to be returned on successful execution.
+        # The ``results`` list is expected to have two elements. The first one stores the result of
+        # the message sender and can be ignored. The second one stores the result of the receiver,
+        # which means the object to be returned on successful execution.
         return results[1]
 
     @classmethod
@@ -215,8 +215,8 @@ class DocumentInspector:
             get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
 
     @classmethod
-    def __handle_event_loop_exec_timeout(cls, event_loop):
-        logging.warning('Timeout reached during the websocket communication session.')
+    def __handle_event_loop_exception(cls, event_loop):
+        logging.warning('Exception raised while the event loop was running.')
         for task in asyncio.Task.all_tasks(loop=event_loop):
             task.cancel()
         event_loop.stop()
