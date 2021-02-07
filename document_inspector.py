@@ -49,7 +49,7 @@ class DocumentInspector:
         try:
             return event_loop.run_until_complete(future)
         except Exception:
-            cls.__handle_event_loop_exception(event_loop)
+            cls.__handle_worload_exception(event_loop)
             raise
 
     async def __get_widgets(self, doc_id, timeout):
@@ -215,7 +215,7 @@ class DocumentInspector:
             get_widget_properties_msg_id, self.__GET_WIDGET_PROPERTIES)
 
     @classmethod
-    def __handle_event_loop_exception(cls, event_loop):
+    def __handle_worload_exception(cls, event_loop):
         logging.warning('Exception raised while the event loop was running.')
         for task in asyncio.Task.all_tasks(loop=event_loop):
             task.cancel()
