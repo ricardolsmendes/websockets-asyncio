@@ -40,7 +40,7 @@ class DocumentInspectorTest(unittest.TestCase):
     @mock.patch(f'{__PRIVATE_METHOD_PREFIX}__run_until_complete')
     @mock.patch(f'{__PRIVATE_METHOD_PREFIX}__get_widgets', lambda *args: None)
     def test_get_widgets_should_return_empty_list_on_failure(self, mock_run_until_complete):
-        mock_run_until_complete.side_effect = Exception()
+        mock_run_until_complete.side_effect = Exception
 
         actual_widgets = self.__document_inspector.get_widgets('abc')
 
@@ -57,7 +57,7 @@ class DocumentInspectorTest(unittest.TestCase):
     @mock.patch(f'{__PRIVATE_METHOD_PREFIX}__cancel_all_tasks')
     def test_run_until_complete_should_cancel_all_tasks_on_failure(self, mock_cancel_all_tasks):
         mock_coroutine = mock.AsyncMock()
-        mock_coroutine.side_effect = Exception()
+        mock_coroutine.side_effect = Exception
 
         try:
             self.__document_inspector._DocumentInspector__run_until_complete(mock_coroutine())
@@ -69,7 +69,7 @@ class DocumentInspectorTest(unittest.TestCase):
     @mock.patch(f'{__PRIVATE_METHOD_PREFIX}__cancel_all_tasks', lambda *args: None)
     def test_run_until_complete_should_reraise_exception_on_failure(self):
         mock_coroutine = mock.AsyncMock()
-        mock_coroutine.side_effect = Exception()
+        mock_coroutine.side_effect = Exception
 
         self.assertRaises(Exception,
                           self.__document_inspector._DocumentInspector__run_until_complete,
