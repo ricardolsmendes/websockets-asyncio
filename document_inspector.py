@@ -222,7 +222,7 @@ class DocumentInspector:
                                           self.__GET_WIDGET_CONTAINER)
 
     async def __handle_get_widget_container_reply(self, websocket, sync_helper, reply):
-        widget_id = reply['result']['id']
+        widget_id = reply['result']['widgetId']
         get_widget_properties_msg_id = \
             await self.__send_get_widget_properties_message(websocket, widget_id)
         sync_helper.add_pending_reply_id(get_widget_properties_msg_id,
