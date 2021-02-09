@@ -20,13 +20,13 @@ class SendReceiveSyncHelper:
     WebSocket communication sessions.
 
     Attributes:
-        __pending_reply_ids:
-            A ``list`` containing the ids of the pending replies, which means the messages
-            identified by them were sent but not replied yet.
         __messages_history:
             A ``dict`` containing the full history of messages known by a given
             ``SendReceiveSyncHelper`` instance, represented as ``message-id: method`` items.
             It is automatically fulfilled when new stuff is added to ``__pending_reply_ids``.
+        __pending_reply_ids:
+            A ``list`` containing the ids of the pending replies, which means the messages
+            identified by them were sent but not replied yet.
         __unhandled_replies:
             A ``list`` containing all replies that were received but not handled yet.
         __new_reply_event:
@@ -35,8 +35,8 @@ class SendReceiveSyncHelper:
     """
 
     def __init__(self):
-        self.__pending_reply_ids = []
         self.__messages_history = {}
+        self.__pending_reply_ids = []
         self.__unhandled_replies = []
         self.__new_reply_event = asyncio.Event()
 
