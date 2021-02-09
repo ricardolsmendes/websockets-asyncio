@@ -114,17 +114,17 @@ class DocumentInspector:
     async def __receive_get_widgets_messages(cls, websocket, sync_helper):
         results = []
         async for message in websocket:
-            reply = json.loads(message)
-            message_id = reply.get('id')
+            message_json = json.loads(message)
+            message_id = message_json.get('id')
             if not message_id:
                 logging.info('Unhandled API message: %s', message)
                 continue
 
             logging.debug('Reply received: %d', message_id)
             if sync_helper.is_pending_reply(message_id, cls.__GET_WIDGET_PROPERTIES):
-                results.append(reply['result'])
+                results.append(message_json['result'])
             else:
-                sync_helper.add_unhandled_reply(reply)
+                sync_helper.add_unhandled_reply(message_json)
 
             sync_helper.remove_pending_reply_id(message_id)
             sync_helper.notify_new_reply()

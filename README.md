@@ -11,7 +11,7 @@ The article is split into two parts:
    programming, exploring the [`asyncio`](https://docs.python.org/3.8/library/asyncio.html)
    built-in library more deeply.
 
-Technical discussions happen on top of a fictitious use-case that guides me to cover the
+Technical discussions happen on top of a fictitious use case that guides me to cover the
 above-mentioned topics.
 
 ![Continuous
