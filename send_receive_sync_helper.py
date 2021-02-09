@@ -16,7 +16,7 @@ import asyncio
 
 
 class SendReceiveSyncHelper:
-    """Utility class with common features for handling message/replies synchronization over
+    """Utility class with common features for handling messages/replies synchronization over
     WebSocket communication sessions.
 
     Attributes:
