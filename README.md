@@ -13,6 +13,3 @@ The article is split into two parts:
 
 Technical discussions happen on top of a fictitious use-case that guides me to cover the
 above-mentioned topics.
-
-![Continuous
-Integration](https://github.com/ricardolsmendes/websockets-asyncio/workflows/Continuous%20Integration/badge.svg?branch=main)
