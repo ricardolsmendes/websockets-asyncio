@@ -132,14 +132,14 @@ class DocumentInspector:
         return results
 
     async def __send_get_widgets_messages(self, websocket, sync_helper):
-        while not sync_helper.were_all_replies_precessed():
+        while not sync_helper.were_all_replies_processed():
             if not sync_helper.is_there_reply_notification():
                 await sync_helper.wait_for_replies()
                 sync_helper.clear_reply_notifications()
             for reply in sync_helper.get_all_unhandled_replies():
                 await self.__send_follow_up_msg_get_widgets(websocket, sync_helper, reply)
 
-        # Closes the websocket when there is no further reply to process.
+        # Closes the websocket when there are no more replies to be processed.
         await websocket.close()
 
     async def __send_follow_up_msg_get_widgets(self, websocket, sync_helper, reply):

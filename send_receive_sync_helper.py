@@ -66,7 +66,7 @@ class SendReceiveSyncHelper:
     def get_all_unhandled_replies(self):
         return self.__unhandled_replies
 
-    def were_all_replies_precessed(self):
+    def were_all_replies_processed(self):
         return not self.__pending_reply_ids and not self.__unhandled_replies
 
     def notify_new_reply(self):
