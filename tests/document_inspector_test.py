@@ -112,7 +112,7 @@ class DocumentInspectorTest(unittest.TestCase):
     def test_receive_get_widgets_messages_should_return_widget_properties(self):
         mock_websocket = mock.AsyncMock()
         mock_websocket.__aiter__.return_value = [
-            '{"id": 1, "result": {"widgetId": "xyz"}}', '{"id": 2, "result": {"id": "xyz"}}'
+            '{"result": {"widgetId": "xyz"}, "id": 1}', '{"result": {"id": "xyz"}, "id": 2}'
         ]
 
         mock_sync_helper = mock.MagicMock()
