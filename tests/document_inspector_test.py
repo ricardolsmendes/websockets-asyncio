@@ -97,7 +97,7 @@ class DocumentInspectorTest(unittest.TestCase):
         mock_wait_for.assert_awaited_once()
 
     def test_receive_get_widgets_messages_should_skip_unknown_message(self):
-        mock_websocket = mock.AsyncMock()
+        mock_websocket = mock.MagicMock()
         mock_websocket.__aiter__.return_value = ['{}']
 
         mock_sync_helper = mock.MagicMock()
@@ -110,7 +110,7 @@ class DocumentInspectorTest(unittest.TestCase):
         mock_sync_helper.notify_new_reply.assert_not_called()
 
     def test_receive_get_widgets_messages_should_return_widget_properties(self):
-        mock_websocket = mock.AsyncMock()
+        mock_websocket = mock.MagicMock()
         mock_websocket.__aiter__.return_value = [
             '{"result": {"widgetId": "xyz"}, "id": 1}', '{"result": {"id": "xyz"}, "id": 2}'
         ]
