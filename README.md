@@ -21,7 +21,7 @@ Integration](https://github.com/ricardolsmendes/websockets-asyncio/workflows/Con
 ## How to contribute
 
 Please make sure to take a moment and read the [Code of
-Conduct](https://github.com/ricardolsmendes/websockets-asyncio/blob/master/.github/CODE_OF_CONDUCT.md).
+Conduct](https://github.com/ricardolsmendes/websockets-asyncio/blob/main/.github/CODE_OF_CONDUCT.md).
 
 ### Report issues
 
@@ -34,5 +34,5 @@ add a comment saying that you encountered the problem as well.
 ### Contribute code
 
 Please make sure to read the [Contributing
-Guide](https://github.com/ricardolsmendes/websockets-asyncio/blob/master/.github/CONTRIBUTING.md)
+Guide](https://github.com/ricardolsmendes/websockets-asyncio/blob/main/.github/CONTRIBUTING.md)
 before making a pull request.
