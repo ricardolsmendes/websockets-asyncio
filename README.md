@@ -15,6 +15,8 @@ The article is split into two parts:
 Technical discussions happen on top of a fictitious use case that guides me to cover the
 above-mentioned topics.
 
+[![license](https://img.shields.io/github/license/ricardolsmendes/websockets-asyncio.svg)](https://github.com/ricardolsmendes/websockets-asyncio/blob/main/LICENSE)
+[![issues](https://img.shields.io/github/issues/ricardolsmendes/websockets-asyncio.svg)](https://github.com/ricardolsmendes/websockets-asyncio/issues)
 ![Continuous
 Integration](https://github.com/ricardolsmendes/websockets-asyncio/workflows/Continuous%20Integration/badge.svg?branch=main)
 
